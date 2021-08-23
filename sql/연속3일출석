@@ -1,0 +1,24 @@
+### 연속 출석일 3일이상 유저
+
+```sql
+set @v:=0, @n:='', @c:=0;
+select d.name, d.date, d.month, @v, d.month-1,
+    case when @v = d.month-1 and @n=d.name
+    then @c:=@c+1 else @c:=1 end as count,
+    @v:=d.month, @n:=d.name
+from(
+    select sex_upon_outcome as name, 
+        date_format(datetime, '%y-%m') as date, 
+        date_format(datetime, '%y')*12 + date_format(datetime, '%m') as month,
+        count(animal_id) as count
+    from animal_outs
+    group by 1,2
+    order by 1,2) d
+```
+
+- 변수 3개 사용
+    - @v: 이전 열의 날짜를 담음
+    - @n: 이전 열의 이름을 담음
+    - @c: 연속 출석 카운트
+- 날짜를 월 또는 일 단위로 환산 후 집계(ex 월*12 + 일)
+- 현날짜와 이전날짜의 차이가 1이면, 카운트 1플러스 아니면 1 (and 이름 동일해야함)
